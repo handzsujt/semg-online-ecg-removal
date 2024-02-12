@@ -6,3 +6,11 @@ An example how to do this is given in the file `sEMG_simulation_multichannel.py`
 It is also shown, how to plot the raw and filtered signals fast. Therefore, a recorded respiratory sEMG with airway pressure measurement is used.
 
 In order to start the simulation, you have to run the `main` method in `main.py`.
+
+## Requirements
+
+The requirements can be installed with
+``
+pip install -r requirements.txt
+``
+.
