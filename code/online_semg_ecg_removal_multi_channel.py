@@ -25,7 +25,7 @@ SOFTWARE.
 from collections import deque
 from statistics import median
 
-from online_filter_bank import FilterBank
+from code.online_filter_bank import FilterBank
 
 
 class SwtEmgDenoise:

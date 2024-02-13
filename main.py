@@ -25,7 +25,7 @@ SOFTWARE.
 This main method creates an app plotting and filtering a two-channel sEMG measurement.
 Look at "sEMG_simulation_multichannel.py" for the implementation and how to use this package.
 """
-import sEMG_simulation_multichannel
+from code import sEMG_simulation_multichannel
 from PySide6.QtWidgets import QApplication
 
 

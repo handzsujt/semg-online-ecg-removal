@@ -61,7 +61,7 @@ BME-32(3), 230-236.
 """
 import numpy as np
 from scipy import signal
-import online_filter
+from code import online_filter
 
 
 class QrsDetector:

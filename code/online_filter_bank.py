@@ -24,7 +24,7 @@ SOFTWARE.
 
 import numpy as np
 import pywt
-from online_filter import OnlineFilter
+from code.online_filter import OnlineFilter
 
 
 def get_sampled_coefficients(coefficients: list):

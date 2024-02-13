@@ -35,7 +35,7 @@ from PySide6.QtCharts import QLineSeries, QChartView, QValueAxis
 from PySide6.QtCore import QPointF
 from PySide6.QtGui import QPainter, QColor, QPen
 from PySide6.QtWidgets import QMainWindow, QFrame, QVBoxLayout
-from sEMG_online_filter import SEMGOnlineFilter
+from code.sEMG_online_filter import SEMGOnlineFilter
 import time
 
 
@@ -61,9 +61,9 @@ class MainWindow(QMainWindow):
 
         self.data_raw_opened = []
         # if you want to use your own dataa, you might have to adjust the y-ranges above
-        self.data_raw_opened.append(open("../data/example_respiratory_sEMg_signal_channel_1.txt", 'r'))
-        self.data_raw_opened.append(open("../data/example_respiratory_sEMG_signal_channel_2.txt", 'r'))
-        self.pressure_opened = open("../data/example_pressure.txt", 'r')
+        self.data_raw_opened.append(open("data/example_respiratory_sEMg_signal_channel_1.txt", 'r'))
+        self.data_raw_opened.append(open("data/example_respiratory_sEMG_signal_channel_2.txt", 'r'))
+        self.pressure_opened = open("data/example_pressure.txt", 'r')
 
         self._initialize_plotter(self.num_channels)
 

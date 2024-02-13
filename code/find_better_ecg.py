@@ -26,9 +26,9 @@ from collections import Counter
 from statistics import mean
 import numpy as np
 from scipy import signal
-import heartbeat_calculating
-import online_filter
-import online_qrs_detection
+from code import heartbeat_calculating
+from code import online_filter
+from code import online_qrs_detection
 
 
 class BetterEcgDetector:
