@@ -47,13 +47,20 @@ class MainWindow(QMainWindow):
         self.length_of_signal = 10  # in seconds
         self.num_channels = 2
 
+        # hard-coded y-ranges of the signals for plotting ([[raw, filtered] of channel 1, [raw, filtered] of channel 2])
+        # extend if you want to use more channels
+        self.y_ranges = [[(-7, -5.5), (-0.025, 0.025)], [(-7, -5.5), (-0.01, 0.01)]]
+
+        assert len(self.y_ranges) == self.num_channels, "you have to set the y-ranges for all channels."
+
         delay = 300
 
-        self.semg_filter = SEMGOnlineFilter(self.num_channels, delay, self.sampling_rate, 400)
+        self.semg_filter = SEMGOnlineFilter(self.num_channels, delay, self.sampling_rate)
 
-        self.length_window = 1024 * self.length_of_signal
+        self.length_window = self.sampling_rate * self.length_of_signal
 
         self.data_raw_opened = []
+        # if you want to use your own dataa, you might have to adjust the y-ranges above
         self.data_raw_opened.append(open("../data/example_respiratory_sEMg_signal_channel_1.txt", 'r'))
         self.data_raw_opened.append(open("../data/example_respiratory_sEMG_signal_channel_2.txt", 'r'))
         self.pressure_opened = open("../data/example_pressure.txt", 'r')
@@ -97,7 +104,7 @@ class MainWindow(QMainWindow):
 
                 for chart in self.charts:
                     chart.update()
-            # this line can be omitted in real measurements, only for performance in simpulation
+            # this line can be omitted in real measurements, only for performance in simulation
             time.sleep(0.035)
 
         self.iteration = (self.iteration + 1) % self.length_window
@@ -169,7 +176,7 @@ class MainWindow(QMainWindow):
         list_to_append[-1].setPen(pen)
 
     def _create_all_charts(self):
-        ranges = [[(-7, -5.5), (-0.025, 0.025)], [(-7, -5.5), (-0.01, 0.01)]]
+        ranges = self.y_ranges
         for i, y_ranges in zip(range(self.num_channels), ranges):
             self._create_chart(f"raw sEMG channel {i + 1}", y_ranges[0], 0, i)
             self._create_chart(f"filtered sEMG channel {i + 1}", y_ranges[1], 1, i)
