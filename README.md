@@ -24,7 +24,7 @@ In order to start the example, you have to run `main.py`.
 If you just want to use the provided interface, you only have to create an `sEMGOnlineFilter` and call `filter_sEMG_online(..)` on the object.
 This interface is also used in the given example.
 
-## Requirements
+### Requirements
 The requirements can be installed with
 ``
 pip install -r requirements.txt
