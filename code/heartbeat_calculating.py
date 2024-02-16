@@ -27,13 +27,13 @@ import numpy as np
 
 class HeartRateCalculator:
     """
-    calculates and saves the heartrate based on the last 3 detected heartbeats
+    calculates and saves the heartrate based on the last four detected heartbeats
     """
 
     def __init__(self, delay: int):
         """
-        initializes a new heartrate calculator with a start rate of 768, which is about the average resting heart rate
-        of an adult
+        initializes a new heartrate calculator with a start rate of 768, which corresponds to about the average resting
+        heart rate of an adult
         :param delay: how many samples the last detection of a heartbeat is delayed
         """
         assert isinstance(delay, int)
@@ -45,7 +45,7 @@ class HeartRateCalculator:
 
     def update_heart_rate(self):
         """
-        calculates the approximate heart rate based on the last three detected heart beats and saves it
+        calculates the approximate heart rate based on the last four detected heart beats and saves it
         :return: nothing
         """
         if len(self.last_beats) > 0 and self.started:

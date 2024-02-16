@@ -27,10 +27,8 @@ import numpy as np
 
 class OnlineFilter:
     """
-    creates a filter and ring-buffer(s) of the minimal required size to filter inputs with the given filter-coefficients
+    Creates a filter and ring buffer(s) of the minimal required size to filter inputs with the given filter coefficients
     gets an input of size 1 and creates an output of size 1
-    The periodic extension is based upon the matlab file swt.m (1995-2020 The MathWorks, Inc.), which is based upon
-    M. Misiti, Y. Misiti, G. Oppenheim, J.M. Poggi 02-Oct-95.
     """
 
     def __init__(self, type_of_filter: int, coefficients_in: list, coefficients_out: list = None):
@@ -65,7 +63,7 @@ class OnlineFilter:
         """
         filters the given value as the next value of the input
         :param input_value: the next value, which should be filtered
-        :return: the next normalized value (filtered value from delay samples ago, where delay = len(coefficients_in)-1
+        :return: the next normalized value (filtered value from delay samples ago, where delay = len(coefficients_in)-1)
         """
         self.ret = 0
         self.buffer_input[self.input_pointer] = input_value

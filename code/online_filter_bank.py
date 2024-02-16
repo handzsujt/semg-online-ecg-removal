@@ -24,6 +24,7 @@ SOFTWARE.
 
 import numpy as np
 import pywt
+
 from code.online_filter import OnlineFilter
 
 

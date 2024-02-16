@@ -33,19 +33,19 @@ from code.online_semg_ecg_removal_multi_channel import SwtEmgDenoise
 
 class SEMGOnlineFilter:
     """
-    Interface for using the multichannel online sEMG filter for your purposes
-    In multichannel measurements a 5 second initializing phase for identifying the best ECG for QRS detection happens
-    before actual processing
-    Just call filter_sEMG_online(measured_values) for every new received samples
+    Interface for using the multichannel online sEMG filter for your purposes.
+    In multichannel measurements a 5-second initializing phase (duration can be passed as parameter) for identifying the
+    best ECG for QRS detection happens before actual processing.
+    Just call filter_sEMG_online(measured_values) for every new received samples.
     """
 
     def __init__(self, num_channels: int, delay: int, fs: int, envelope_window=256, initialization_time=5.0):
         """
-        :param num_channels: The number of channels of the measured sEMG signal
+        :param num_channels: the number of channels of the measured sEMG signal
         :param delay: the delay of the peak detection in samples (300 are recommended)
         :param fs: the sampling frequency of the sEMG signal
         :param initialization_time: the time in seconds the initialization for finding the best signal for QRS detection
-         should take. 0 if no initialization wanted -> first channel is used for ecg detection
+         should take. 0 if no initialization wanted -> first channel will be used for ECG detection
         """
         self.num_channels = num_channels
         self.fs = fs
@@ -66,11 +66,11 @@ class SEMGOnlineFilter:
 
     def filter_sEMG_online(self, measured_values: int or list) -> (list, list) or (int, int):
         """
-        Does all the steps to remove the ECG from a respiratory sEMG measurement
-        In multichannel cases, the best signal for detecting the QRS regions is identified first
+        Does all the steps to remove the ECG from a respiratory sEMG measurement.
+        In multichannel cases, the best signal for detecting the QRS regions is identified first.
         :param measured_values: the new packet of measured values (one sample of each channel) or the new measured value
-        :return: for multichannel two lists: the denoised values and the envelopes; else: the two values of the channel
-         during initialization the function returns zero for all channels
+        :return: for multichannel two lists: the denoised values and the envelopes; else: the two values of the channel.
+         During initialization the function returns zero for all channels.
         """
 
         if self.num_channels > 1 and self.received_measurement_values_cnt < self.num_initialization_samples:
@@ -103,7 +103,7 @@ class SEMGOnlineFilter:
 
     def _get_best_ecg_signal(self, measured_values: list):
         """
-        Identifies and sets the best signal out of the given ones for QRS detection and updates the progress bar
+        Identifies and sets the best signal out of the given ones for QRS detection and updates the progress bar.
         :param measured_values: the new measured values
         """
         result_of_detection = self.better_ecg_detector.find_better_ecg(measured_values)

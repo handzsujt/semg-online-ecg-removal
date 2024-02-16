@@ -20,6 +20,10 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+Based upon the emg-ecg-denoising algorithm from:
+Petersen, E., Sauer, J., Graßhoff, J., and Rostalski, P.(2022). Removing Cardiac Artifacts From Single-Channel
+Respiratory Electromyograms. IEEE Access, 8, 30905-30917.
 """
 
 from collections import deque
@@ -30,17 +34,14 @@ from code.online_filter_bank import FilterBank
 
 class SwtEmgDenoise:
     """
-    This class can be used for denoising a multi-channel EMG-signal and remove cardiac artifacts online
-    using a stationary wavelet transform.
-    Based upon the emg-ecg-denoising algorithm from:
-    Petersen, E., Sauer, J., Graßhoff, J., and Rostalski, P.(2022). Removing Cardiac Artifacts From Single-Channel
-    Respiratory Electromyograms. IEEE Access, 8, 30905-30917.
+    This class can be used for denoising a multi-channel EMG signal and removing cardiac artifacts online using a
+    stationary wavelet transform.
     """
 
     def __init__(self, fs, delay, channels):
         """
-        filter_bank: the Filter-bank used for swt
-        peaks: Array, signifying the positions of rpeaks.
+        filter_bank: the filter bank used for SWT
+        peaks: Array, signifying the positions of R-peaks
         :param fs: the sampling rate
         :param delay: the delay of the peak detection
         :param channels: the number of recording channels
@@ -62,7 +63,7 @@ class SwtEmgDenoise:
     def swt_emg_denoising(self, sig, peak, heartrate):
         """
         This is a variant of the commonly used wavelet denoising that is optimized with respect to ECG removal.
-        The position of r-peaks is considered and used in a special thresholding method.
+        The position of R-peaks is considered and used in a special thresholding method.
 
         :param peak: 1 if sig is a peak, else 0
         :param heartrate: updated heartrate

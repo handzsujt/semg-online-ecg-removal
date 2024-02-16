@@ -27,7 +27,7 @@ from collections import deque
 
 class EnvelopeCalculator:
     """
-    calculates the envelope signal of a signal online
+    Calculates the envelope of a signal online
     """
 
     def __init__(self, delayed: bool, window_len: int):
@@ -62,4 +62,4 @@ class EnvelopeCalculator:
         self.buffer.appendleft(abs(value))
         self.sum += abs(value)
 
-        return self.sum/self.n
+        return self.sum / self.n

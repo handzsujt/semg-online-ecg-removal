@@ -20,6 +20,10 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+Based upon the emg-ecg-denoising algorithm from:
+Petersen, E., Sauer, J., Graßhoff, J., and Rostalski, P.(2022). Removing Cardiac Artifacts From Single-Channel
+Respiratory Electromyograms. IEEE Access, 8, 30905-30917.
 """
 
 from collections import deque
@@ -30,17 +34,14 @@ import online_filter_bank
 
 class SwtEmgDenoise:
     """
-    This class can be used for denoising an EMG-signal and remove cardiac artifacts online using a stationary wavelet
+    This class can be used for denoising an EMG signal and removing cardiac artifacts online using a stationary wavelet
     transform.
-    It is based upon the EMG-ECG-denoising algorithm described in:
-    Petersen, E., Sauer, J., Graßhoff, J., and Rostalski, P.(2022). Removing Cardiac Artifacts From Single-Channel
-    Respiratory Electromyograms. IEEE Access, 8, 30905-30917.
     """
 
     def __init__(self, fs: int, delay: int):
         """
-        filter_bank: the Filter-bank used for swt
-        peaks: Array, signifying the positions of rpeaks.
+        filter_bank: the filter bank used for SWT
+        peaks: Array, signifying the positions of R-peaks
         :param fs: the sampling rate
         :param delay: the delay of the peak detection
         """
@@ -58,7 +59,7 @@ class SwtEmgDenoise:
     def swt_emg_denoising(self, sig: float, peak: int, heartrate: int):
         """
         This is a variant of the commonly used wavelet denoising that is optimized with respect to ECG removal.
-        The position of r-peaks is considered and used in a special thresholding method.
+        The position of R-peaks is considered and used in a special thresholding method.
 
         :param peak: 1 if sig is a peak, else 0
         :param heartrate: updated heartrate
@@ -108,30 +109,30 @@ class SwtEmgDenoise:
             if level == 1:
                 self.coefficients_highpass_1.appendleft(gated_detail_coeff)
                 median_detail_coeff = median(self.coefficients_highpass_1)
-                if len(self.coefficients_highpass_1) > self.fs/4:
+                if len(self.coefficients_highpass_1) > self.fs / 4:
                     self.coefficients_highpass_1.pop()
             elif level == 2:
                 self.coefficients_highpass_2.appendleft(gated_detail_coeff)
                 median_detail_coeff = median(self.coefficients_highpass_2)
-                if len(self.coefficients_highpass_2) > self.fs/4:
+                if len(self.coefficients_highpass_2) > self.fs / 4:
                     self.coefficients_highpass_2.pop()
             else:
                 self.coefficients_highpass_3.appendleft(gated_detail_coeff)
                 median_detail_coeff = median(self.coefficients_highpass_3)
-                if len(self.coefficients_highpass_3) > self.fs/4:
+                if len(self.coefficients_highpass_3) > self.fs / 4:
                     self.coefficients_highpass_3.pop()
 
             # Subsequently set smaller threshold in segmented qrs-complex areas.
             if gate:
-                wt_thresh = ecg_thr * median_detail_coeff   # set gates to lower threshold
+                wt_thresh = ecg_thr * median_detail_coeff  # set gates to lower threshold
             else:
                 wt_thresh = emg_thr * median_detail_coeff
-            below = abs(detail_coeff) < wt_thresh     # returns a boolean array with True under threshold (no peak)
+            below = abs(detail_coeff) < wt_thresh  # returns a boolean array with True under threshold (no peak)
 
             # high frequencies
             # below threshold -> EMG
             if not below:
-                detail_coeff = 0    # set all False to 0 (all peaks)
+                detail_coeff = 0  # set all False to 0 (all peaks)
 
             if level == 3:
                 swt_coefficients_emg[idx] = (0, detail_coeff)  # lowpass set to 0

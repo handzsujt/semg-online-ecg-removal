@@ -30,13 +30,15 @@ Petersen, E., Sauer, J., Graßhoff, J., and Rostalski, P.(2022). Removing Cardia
 """
 
 import threading
+import time
+
 from PySide6 import QtCharts, QtCore
 from PySide6.QtCharts import QLineSeries, QChartView, QValueAxis
 from PySide6.QtCore import QPointF
 from PySide6.QtGui import QPainter, QColor, QPen
 from PySide6.QtWidgets import QMainWindow, QFrame, QVBoxLayout
+
 from code.sEMG_online_filter import SEMGOnlineFilter
-import time
 
 
 class MainWindow(QMainWindow):

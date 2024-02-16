@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-This main method creates an app plotting and filtering a two-channel sEMG measurement.
+This 'main' method creates an app plotting and filtering a two-channel sEMG measurement.
 Look at "sEMG_simulation_multichannel.py" for the implementation and how to use this package.
 """
 from code import sEMG_simulation_multichannel

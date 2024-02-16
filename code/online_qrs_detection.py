@@ -58,15 +58,20 @@ Algorithm using the Pan-Tomkins qrs-detection-algorithm for detecting qrs-comple
 measurements:
 J. Pan and W. J. Tompkins (1985), A Real-Time QRS Detection Algorithm. IEEE Transactions on Biomedical Engineering,
 BME-32(3), 230-236.
+
+Modification from Eike Petersen:
+Petersen, E., Sauer, J., Graßhoff, J., and Rostalski, P.(2022). Removing Cardiac Artifacts From Single-Channel
+    Respiratory Electromyograms. IEEE Access, 8, 30905-30917.
 """
 import numpy as np
 from scipy import signal
+
 from code import online_filter
 
 
 class QrsDetector:
     """
-    test, whether the value at idx look_at_value is a peak
+    Test, whether the value at index 'look_at_value' is a QRS peak
     return 1, if there is a peak, otherwise 0
     """
 
@@ -109,7 +114,7 @@ class QrsDetector:
 
     def qrs_detection(self, x: float):
         """
-        :param x: value from an emg signal with ecg artifacts
+        :param x: measured value from an EMG signal with ecg artifacts
         :return: 1, if the idx look_at_value is a peak, otherwise 0
         """
         assert isinstance(x, float), "the input values of the sEMG signal must be floats"
@@ -122,7 +127,7 @@ class QrsDetector:
 
         # bandpass from Pan-Tompkins:
         # "to reduce muscle noise, 60Hz interference, baseline wander and T-Wave interference" (p.232)
-        # smoothing not used yet, so no delay
+        # smoothing not used (yet), so no delay
         self.filtered_signal = np.append(self.bandpass.filter(self.buffered_signal[0]), self.filtered_signal[:])
         if len(self.filtered_signal) > 2:
             self.filtered_signal = self.filtered_signal[:-1]
@@ -180,7 +185,6 @@ class QrsDetector:
         self.max_cnt += 1
 
         # actual peak detection
-
         # (delay of 64 because of mean )
         # found a part of a box
         if self.mean_signal[0] > self.thr * v_max:
