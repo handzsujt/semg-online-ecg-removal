@@ -29,7 +29,7 @@ Respiratory Electromyograms. IEEE Access, 8, 30905-30917.
 from collections import deque
 from statistics import median
 
-from code.online_filter_bank import FilterBank
+from code.online_three_layer_filter_bank import FilterBank
 
 
 class SwtEmgDenoise:

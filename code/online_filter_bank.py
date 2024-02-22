@@ -28,22 +28,24 @@ import pywt
 from code.online_filter import OnlineFilter
 
 
-def get_sampled_coefficients(coefficients: list):
+def get_sampled_coefficients(coefficients: list, num_levels: int):
     """
     returns the coefficients for the 2nd and 3rd level of the stationary wavelet transform,
     which are the coefficients of the 1st level but padded with zeros in between
     :param coefficients: the coefficients of the 1st level
-    :return: the coefficients of the 2nd and 3rd level
+    :param num_levels: the number of levels of the filter bank
+    :return: the coefficients of the higher levels
     """
-    coefficients2 = np.zeros(len(coefficients) * 2 - 1)
-    for i in range(0, len(coefficients)):
-        coefficients2[i * 2] = coefficients[i]
+    all_coefficients = [np.zeros(len(coefficients) * 2 - 1)]
+    for i in range(len(coefficients)):
+        all_coefficients[0][i * 2] = coefficients[i]
 
-    coefficients3 = np.zeros(len(coefficients2) * 2 - 1)
-    for i in range(0, len(coefficients2)):
-        coefficients3[i * 2] = coefficients2[i]
+    for i in range(num_levels - 2):
+        all_coefficients.append(np.zeros(len(all_coefficients[i]) * 2 - 1))
+        for j in range(len(all_coefficients[i])):
+            all_coefficients[i + 1][j * 2] = all_coefficients[i][j]
 
-    return coefficients2, coefficients3
+    return all_coefficients
 
 
 class FilterBank:
@@ -52,54 +54,57 @@ class FilterBank:
     delay of 21 samples
     """
 
-    def __init__(self):
+    def __init__(self, num_levels: int):
         """
+        :param num_levels: the number of levels of the filter bank
         creates all the coefficients and filters needed for the swt
         """
-        self.buffer1 = np.zeros(19)
-        self.buffer2 = np.zeros(13)
+        self.num_levels = num_levels
+
+        filter_delays = [3 * (2 ** i) for i in range(num_levels)]
+        buffer_lengths = []
+        buffer_length = 0
+        for i in filter_delays[::-1]:
+            buffer_length += i
+            buffer_lengths.append(buffer_length + 1)
+
+        # buffers for delaying, sorted: delay for level one is at the last position
+        self.buffers = [np.zeros(i) for i in buffer_lengths]
 
         # for ring-buffers
-        self.pointer_buffer1 = 0
-        self.pointer_buffer2 = 0
+        self.buffer_pointers = [0 for _ in range(num_levels - 1)]
 
         self.ret = 0
 
         # filter coefficients
-        self.decomposition_lowpass_1 = pywt.Wavelet('db2').filter_bank[0]
-        self.decomposition_lowpass_2, self.decomposition_lowpass_3 = get_sampled_coefficients(
-            self.decomposition_lowpass_1)
+        self.decomposition_lowpass = [pywt.Wavelet('db2').filter_bank[0]]
+        for coefficients in get_sampled_coefficients(self.decomposition_lowpass[0].tolist(), num_levels):
+            self.decomposition_lowpass.append(coefficients.tolist())
 
-        self.decomposition_highpass_1 = pywt.Wavelet('db2').filter_bank[1]
-        self.decomposition_highpass_2, self.decomposition_highpass_3 = get_sampled_coefficients(
-            self.decomposition_highpass_1)
+        self.decomposition_highpass = [pywt.Wavelet('db2').filter_bank[1]]
+        for coefficients in get_sampled_coefficients(self.decomposition_highpass[0].tolist(), num_levels):
+            self.decomposition_highpass.append(coefficients.tolist())
 
-        self.recomposition_lowpass_1 = pywt.Wavelet('db2').filter_bank[2]
-        self.recomposition_lowpass_2, self.recomposition_lowpass_3 = get_sampled_coefficients(
-            self.recomposition_lowpass_1)
+        self.recomposition_lowpass = [pywt.Wavelet('db2').filter_bank[2]]
+        for coefficients in get_sampled_coefficients(self.recomposition_lowpass[0].tolist(), num_levels):
+            self.recomposition_lowpass.append(coefficients.tolist())
 
-        self.recomposition_highpass_1 = pywt.Wavelet('db2').filter_bank[3]
-        self.recomposition_highpass_2, self.recomposition_highpass_3 = get_sampled_coefficients(
-            self.recomposition_highpass_1)
+        self.recomposition_highpass = [pywt.Wavelet('db2').filter_bank[3]]
+        for coefficients in get_sampled_coefficients(self.recomposition_highpass[0].tolist(), num_levels):
+            self.recomposition_highpass.append(coefficients.tolist())
 
         # filters
-        self.decomposition_filter_low_1 = OnlineFilter(0, self.decomposition_lowpass_1)
-        self.decomposition_filter_high_1 = OnlineFilter(0, self.decomposition_highpass_1)
+        self.decomposition_filter_low = [OnlineFilter(0, self.decomposition_lowpass[i])
+                                         for i in range(len(self.decomposition_lowpass))]
 
-        self.decomposition_filter_low_2 = OnlineFilter(0, self.decomposition_lowpass_2)
-        self.decomposition_filter_high_2 = OnlineFilter(0, self.decomposition_highpass_2)
+        self.decomposition_filter_high = [OnlineFilter(0, self.decomposition_highpass[i])
+                                          for i in range(len(self.decomposition_highpass))]
 
-        self.decomposition_filter_low_3 = OnlineFilter(0, self.decomposition_lowpass_3)
-        self.decomposition_filter_high_3 = OnlineFilter(0, self.decomposition_highpass_3)
+        self.recomposition_filter_low = [OnlineFilter(0, self.recomposition_lowpass[i])
+                                         for i in range(len(self.recomposition_lowpass))]
 
-        self.recomposition_filter_low_1 = OnlineFilter(0, self.recomposition_lowpass_1)
-        self.recomposition_filter_high_1 = OnlineFilter(0, self.recomposition_highpass_1)
-
-        self.recomposition_filter_low_2 = OnlineFilter(0, self.recomposition_lowpass_2)
-        self.recomposition_filter_high_2 = OnlineFilter(0, self.recomposition_highpass_2)
-
-        self.recomposition_filter_low_3 = OnlineFilter(0, self.recomposition_lowpass_3)
-        self.recomposition_filter_high_3 = OnlineFilter(0, self.recomposition_highpass_3)
+        self.recomposition_filter_high = [OnlineFilter(0, self.recomposition_highpass[i])
+                                          for i in range(len(self.recomposition_highpass))]
 
     def swt(self, input_value: float):
         """
@@ -107,48 +112,33 @@ class FilterBank:
         :param input_value: the value, which should be filtered next
         :return: the filtered values for each of the layers of the filter bank (each with a different delay)
         """
-        y_lowpass_1 = self.decomposition_filter_low_1.filter(input_value)
-        y_highpass_1 = self.decomposition_filter_high_1.filter(input_value)
+        decomposed_coefficients = [(self.decomposition_filter_low[0].filter(input_value),
+                                    self.decomposition_filter_high[0].filter(input_value))]
 
-        y_lowpass_2 = self.decomposition_filter_low_2.filter(y_lowpass_1)
-        y_highpass_2 = self.decomposition_filter_high_2.filter(y_lowpass_1)
+        for i in range(self.num_levels - 1):
+            next_decomposed_coefficients = (self.decomposition_filter_low[i + 1].filter(decomposed_coefficients[i][0]),
+                                            self.decomposition_filter_high[i + 1].filter(decomposed_coefficients[i][1]))
+            decomposed_coefficients.append(next_decomposed_coefficients)
 
-        y_lowpass_3 = self.decomposition_filter_low_3.filter(y_lowpass_2)
-        y_highpass_3 = self.decomposition_filter_high_3.filter(y_lowpass_2)
+        return decomposed_coefficients
 
-        return (y_lowpass_3, y_highpass_3), (y_lowpass_2, y_highpass_2), (y_lowpass_1, y_highpass_1)
-
-    def iswt(self, y_lowpass_3: float, y_highpass_3: float, y_highpass_2: float, y_highpass_1: float):
+    def iswt(self, y_lowpass: float, y_highpasses: list):
         """
         inverse stationary wavelet transform
-        :param y_lowpass_3: the filtered value from the lowpass of level 3
-        :param y_highpass_3: the filtered value from the highpass of level 3
-        :param y_highpass_2: the filtered value from the highpass of level 2
-        :param y_highpass_1: the filtered value from the highpass of level 1
-        :return: the final result of the stationary wavelet transform with a delay of 21 samples
+        :param y_lowpass: the filtered value from the lowpass of the lowest level (high level count)
+        :param y_highpasses: the filtered values of all highpass coefficients sorted ascending, lowest level first
+        :return: the final result of the stationary wavelet transform with a delay
         """
-        r_lowpass_3 = self.recomposition_filter_low_3.filter(y_lowpass_3)
-        r_highpass_3 = self.recomposition_filter_high_3.filter(y_highpass_3)
 
-        r_level_3_added = r_lowpass_3 + r_highpass_3
-        r_lowpass_2 = self.recomposition_filter_low_2.filter(r_level_3_added)
-        r_highpass_2 = self.recomposition_filter_high_2.filter(y_highpass_2)
+        result_lower_level = (self.recomposition_lowpass[-1].filter(y_lowpass) + self.recomposition_highpass[-1]
+                              .filter(y_highpasses[0]))
 
-        self.buffer2[self.pointer_buffer2] = r_highpass_2
-        if self.pointer_buffer2 == self.buffer2.size - 1:
-            self.pointer_buffer2 = 0
-        else:
-            self.pointer_buffer2 += 1
+        for i, highpass in enumerate(y_highpasses[1:]):
+            r_lowpass = self.recomposition_lowpass[- (i + 2)].filter(result_lower_level)
+            r_highpass = self.recomposition_highpass[- (i + 2)].filter(highpass)
+            self.buffers[i][self.buffer_pointers[i]] = r_highpass
+            self.buffer_pointers[i] = (self.buffer_pointers[i] + 1) % self.buffers[i].size
 
-        r_level_2_added = self.buffer2[self.pointer_buffer2 % self.buffer2.size] + r_lowpass_2 / 2
+            result_lower_level = (self.buffers[i[self.buffer_pointers[i]]] + r_lowpass / 2) / (2 ** i)
 
-        r_lowpass_1 = self.recomposition_filter_low_1.filter(r_level_2_added)
-        r_highpass_1 = self.recomposition_filter_high_1.filter(y_highpass_1)
-
-        self.buffer1[self.pointer_buffer1] = r_highpass_1
-        if self.pointer_buffer1 == self.buffer1.size - 1:
-            self.pointer_buffer1 = 0
-        else:
-            self.pointer_buffer1 += 1
-
-        return (self.buffer1[self.pointer_buffer1 % self.buffer1.size] + r_lowpass_1 / 2) / 2
+        return result_lower_level
