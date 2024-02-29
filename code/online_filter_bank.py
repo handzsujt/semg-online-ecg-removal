@@ -54,14 +54,14 @@ class FilterBank:
     delay of 21 samples
     """
 
-    def __init__(self, num_levels: int):
+    def __init__(self, num_levels: int, daubechies_filter_order: int):
         """
         :param num_levels: the number of levels of the filter bank
         creates all the coefficients and filters needed for the swt
         """
         self.num_levels = num_levels
 
-        filter_delays = [3 * (2 ** i) for i in range(num_levels)]
+        filter_delays = [(daubechies_filter_order-1) * (2 ** i) for i in range(num_levels)]
 
         self.delay = sum(filter_delays)
 
@@ -79,20 +79,21 @@ class FilterBank:
 
         self.ret = 0
 
+        daubechies_filter = 'db' + str(int(daubechies_filter_order/2))
         # filter coefficients
-        self.decomposition_lowpass = [pywt.Wavelet('db2').filter_bank[0]]
+        self.decomposition_lowpass = [pywt.Wavelet(daubechies_filter).filter_bank[0]]
         for coefficients in get_sampled_coefficients(self.decomposition_lowpass[0], num_levels):
             self.decomposition_lowpass.append(coefficients)
 
-        self.decomposition_highpass = [pywt.Wavelet('db2').filter_bank[1]]
+        self.decomposition_highpass = [pywt.Wavelet(daubechies_filter).filter_bank[1]]
         for coefficients in get_sampled_coefficients(self.decomposition_highpass[0], num_levels):
             self.decomposition_highpass.append(coefficients)
 
-        self.recomposition_lowpass = [pywt.Wavelet('db2').filter_bank[2]]
+        self.recomposition_lowpass = [pywt.Wavelet(daubechies_filter).filter_bank[2]]
         for coefficients in get_sampled_coefficients(self.recomposition_lowpass[0], num_levels):
             self.recomposition_lowpass.append(coefficients)
 
-        self.recomposition_highpass = [pywt.Wavelet('db2').filter_bank[3]]
+        self.recomposition_highpass = [pywt.Wavelet(daubechies_filter).filter_bank[3]]
         for coefficients in get_sampled_coefficients(self.recomposition_highpass[0], num_levels):
             self.recomposition_highpass.append(coefficients)
 
