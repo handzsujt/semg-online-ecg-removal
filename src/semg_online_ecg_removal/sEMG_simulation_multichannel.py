@@ -38,7 +38,7 @@ from PySide6.QtCore import QPointF
 from PySide6.QtGui import QPainter, QColor, QPen
 from PySide6.QtWidgets import QMainWindow, QFrame, QVBoxLayout
 
-from code.sEMG_online_filter import SEMGOnlineFilter
+from semg_online_ecg_removal.sEMG_online_filter import SEMGOnlineFilter
 
 
 class MainWindow(QMainWindow):
@@ -53,19 +53,27 @@ class MainWindow(QMainWindow):
         # extend if you want to use more channels
         self.y_ranges = [[(-7, -5.5), (-0.025, 0.025)], [(-7, -5.5), (-0.01, 0.01)]]
 
-        assert len(self.y_ranges) == self.num_channels, "you have to set the y-ranges for all channels."
+        assert (
+            len(self.y_ranges) == self.num_channels
+        ), "you have to set the y-ranges for all channels."
 
         delay = 300
 
-        self.semg_filter = SEMGOnlineFilter(self.num_channels, delay, self.sampling_rate)
+        self.semg_filter = SEMGOnlineFilter(
+            self.num_channels, delay, self.sampling_rate
+        )
 
         self.length_window = self.sampling_rate * self.length_of_signal
 
         self.data_raw_opened = []
-        # if you want to use your own dataa, you might have to adjust the y-ranges above
-        self.data_raw_opened.append(open("data/example_respiratory_sEMg_signal_channel_1.txt", 'r'))
-        self.data_raw_opened.append(open("data/example_respiratory_sEMG_signal_channel_2.txt", 'r'))
-        self.pressure_opened = open("data/example_pressure.txt", 'r')
+        # if you want to use your own data, you might have to adjust the y-ranges above
+        self.data_raw_opened.append(
+            open("data/example_respiratory_sEMG_signal_channel_1.txt", "r")
+        )
+        self.data_raw_opened.append(
+            open("data/example_respiratory_sEMG_signal_channel_2.txt", "r")
+        )
+        self.pressure_opened = open("data/example_pressure.txt", "r")
 
         self._initialize_plotter(self.num_channels)
 
@@ -87,13 +95,23 @@ class MainWindow(QMainWindow):
         cur_pressure_value = get_next_data(1, self.pressure_opened)[0]
 
         # from here the same for a real measurement
-        denoised_values, envelope_values = self.semg_filter.filter_sEMG_online(current_values)
+        denoised_values, envelope_values = self.semg_filter.filter_sEMG_online(
+            current_values
+        )
 
         for i in range(self.num_channels):
-            self.temp_raw[i][self.iteration] = QPointF(self.iteration / 1024, current_values[i])
-            self.temp_filtered[i][self.iteration] = QPointF(self.iteration / 1024, denoised_values[i])
-            self.temp_env[i][self.iteration] = QPointF(self.iteration / 1024, envelope_values[i] * 3)
-        self.temp_pres[self.iteration] = QPointF(self.iteration / 1024, cur_pressure_value)
+            self.temp_raw[i][self.iteration] = QPointF(
+                self.iteration / 1024, current_values[i]
+            )
+            self.temp_filtered[i][self.iteration] = QPointF(
+                self.iteration / 1024, denoised_values[i]
+            )
+            self.temp_env[i][self.iteration] = QPointF(
+                self.iteration / 1024, envelope_values[i] * 3
+            )
+        self.temp_pres[self.iteration] = QPointF(
+            self.iteration / 1024, cur_pressure_value
+        )
 
         # for real measurements this value can be lower
         if self.iteration % 70 == 0:
@@ -168,7 +186,9 @@ class MainWindow(QMainWindow):
         for i in range(self.num_channels):
             self._create_signal(0, f"raw sEMG channel {i + 1}", self.pen)
             self._create_signal(1, f"filtered sEMG channel {i + 1}", self.pen)
-            self._create_signal(2, f"envelope of filtered sEMG channel {i + 1}", self.orange_pen)
+            self._create_signal(
+                2, f"envelope of filtered sEMG channel {i + 1}", self.orange_pen
+            )
         self._create_signal(3, "pressure signal", self.pen)
 
     def _create_signal(self, signal_type, name, pen):
@@ -235,9 +255,13 @@ def get_next_data(samples, file):
     new_values = []
     for lines in range(0, samples):
         data_in_line = file.readline()  # read next line
-        if data_in_line == '':
-            new_values.append(-1)  # if eof return data and add a -1 at the end to communicate eof
+        if data_in_line == "":
+            new_values.append(
+                -1
+            )  # if eof return data and add a -1 at the end to communicate eof
             break
         else:
-            new_values.append(float(data_in_line))  # add number at end of list (wrong way round)
+            new_values.append(
+                float(data_in_line)
+            )  # add number at end of list (wrong way round)
     return new_values

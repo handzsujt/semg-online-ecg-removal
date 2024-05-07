@@ -25,7 +25,7 @@ SOFTWARE.
 import numpy as np
 import pywt
 
-from code.online_filter import OnlineFilter
+from semg_online_ecg_removal.online_filter import OnlineFilter
 
 
 def get_sampled_coefficients(coefficients: list, num_levels: int):

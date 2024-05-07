@@ -66,7 +66,7 @@ Petersen, E., Sauer, J., Graßhoff, J., and Rostalski, P.(2022). Removing Cardia
 import numpy as np
 from scipy import signal
 
-from code import online_filter
+from semg_online_ecg_removal import online_filter
 
 
 class QrsDetector:

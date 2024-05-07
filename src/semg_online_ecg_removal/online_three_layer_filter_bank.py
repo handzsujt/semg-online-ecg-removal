@@ -25,7 +25,7 @@ SOFTWARE.
 import numpy as np
 import pywt
 
-from code.online_filter import OnlineFilter
+from semg_online_ecg_removal.online_filter import OnlineFilter
 
 
 def get_sampled_coefficients(coefficients: list):
@@ -66,40 +66,56 @@ class FilterBank:
         self.ret = 0
 
         # filter coefficients
-        self.decomposition_lowpass_1 = pywt.Wavelet('db2').filter_bank[0]
-        self.decomposition_lowpass_2, self.decomposition_lowpass_3 = get_sampled_coefficients(
-            self.decomposition_lowpass_1)
+        self.decomposition_lowpass_1 = pywt.Wavelet("db2").filter_bank[0]
+        self.decomposition_lowpass_2, self.decomposition_lowpass_3 = (
+            get_sampled_coefficients(self.decomposition_lowpass_1)
+        )
 
-        self.decomposition_highpass_1 = pywt.Wavelet('db2').filter_bank[1]
-        self.decomposition_highpass_2, self.decomposition_highpass_3 = get_sampled_coefficients(
-            self.decomposition_highpass_1)
+        self.decomposition_highpass_1 = pywt.Wavelet("db2").filter_bank[1]
+        self.decomposition_highpass_2, self.decomposition_highpass_3 = (
+            get_sampled_coefficients(self.decomposition_highpass_1)
+        )
 
-        self.recomposition_lowpass_1 = pywt.Wavelet('db2').filter_bank[2]
-        self.recomposition_lowpass_2, self.recomposition_lowpass_3 = get_sampled_coefficients(
-            self.recomposition_lowpass_1)
+        self.recomposition_lowpass_1 = pywt.Wavelet("db2").filter_bank[2]
+        self.recomposition_lowpass_2, self.recomposition_lowpass_3 = (
+            get_sampled_coefficients(self.recomposition_lowpass_1)
+        )
 
-        self.recomposition_highpass_1 = pywt.Wavelet('db2').filter_bank[3]
-        self.recomposition_highpass_2, self.recomposition_highpass_3 = get_sampled_coefficients(
-            self.recomposition_highpass_1)
+        self.recomposition_highpass_1 = pywt.Wavelet("db2").filter_bank[3]
+        self.recomposition_highpass_2, self.recomposition_highpass_3 = (
+            get_sampled_coefficients(self.recomposition_highpass_1)
+        )
 
         # filters
         self.decomposition_filter_low_1 = OnlineFilter(0, self.decomposition_lowpass_1)
-        self.decomposition_filter_high_1 = OnlineFilter(0, self.decomposition_highpass_1)
+        self.decomposition_filter_high_1 = OnlineFilter(
+            0, self.decomposition_highpass_1
+        )
 
         self.decomposition_filter_low_2 = OnlineFilter(0, self.decomposition_lowpass_2)
-        self.decomposition_filter_high_2 = OnlineFilter(0, self.decomposition_highpass_2)
+        self.decomposition_filter_high_2 = OnlineFilter(
+            0, self.decomposition_highpass_2
+        )
 
         self.decomposition_filter_low_3 = OnlineFilter(0, self.decomposition_lowpass_3)
-        self.decomposition_filter_high_3 = OnlineFilter(0, self.decomposition_highpass_3)
+        self.decomposition_filter_high_3 = OnlineFilter(
+            0, self.decomposition_highpass_3
+        )
 
         self.recomposition_filter_low_1 = OnlineFilter(0, self.recomposition_lowpass_1)
-        self.recomposition_filter_high_1 = OnlineFilter(0, self.recomposition_highpass_1)
+        self.recomposition_filter_high_1 = OnlineFilter(
+            0, self.recomposition_highpass_1
+        )
 
         self.recomposition_filter_low_2 = OnlineFilter(0, self.recomposition_lowpass_2)
-        self.recomposition_filter_high_2 = OnlineFilter(0, self.recomposition_highpass_2)
+        self.recomposition_filter_high_2 = OnlineFilter(
+            0, self.recomposition_highpass_2
+        )
 
         self.recomposition_filter_low_3 = OnlineFilter(0, self.recomposition_lowpass_3)
-        self.recomposition_filter_high_3 = OnlineFilter(0, self.recomposition_highpass_3)
+        self.recomposition_filter_high_3 = OnlineFilter(
+            0, self.recomposition_highpass_3
+        )
 
     def swt(self, input_value: float):
         """
@@ -116,9 +132,19 @@ class FilterBank:
         y_lowpass_3 = self.decomposition_filter_low_3.filter(y_lowpass_2)
         y_highpass_3 = self.decomposition_filter_high_3.filter(y_lowpass_2)
 
-        return (y_lowpass_3, y_highpass_3), (y_lowpass_2, y_highpass_2), (y_lowpass_1, y_highpass_1)
+        return (
+            (y_lowpass_3, y_highpass_3),
+            (y_lowpass_2, y_highpass_2),
+            (y_lowpass_1, y_highpass_1),
+        )
 
-    def iswt(self, y_lowpass_3: float, y_highpass_3: float, y_highpass_2: float, y_highpass_1: float):
+    def iswt(
+        self,
+        y_lowpass_3: float,
+        y_highpass_3: float,
+        y_highpass_2: float,
+        y_highpass_1: float,
+    ):
         """
         inverse stationary wavelet transform
         :param y_lowpass_3: the filtered value from the lowpass of level 3
@@ -140,7 +166,9 @@ class FilterBank:
         else:
             self.pointer_buffer2 += 1
 
-        r_level_2_added = self.buffer2[self.pointer_buffer2 % self.buffer2.size] + r_lowpass_2 / 2
+        r_level_2_added = (
+            self.buffer2[self.pointer_buffer2 % self.buffer2.size] + r_lowpass_2 / 2
+        )
 
         r_lowpass_1 = self.recomposition_filter_low_1.filter(r_level_2_added)
         r_highpass_1 = self.recomposition_filter_high_1.filter(y_highpass_1)
@@ -151,4 +179,6 @@ class FilterBank:
         else:
             self.pointer_buffer1 += 1
 
-        return (self.buffer1[self.pointer_buffer1 % self.buffer1.size] + r_lowpass_1 / 2) / 2
+        return (
+            self.buffer1[self.pointer_buffer1 % self.buffer1.size] + r_lowpass_1 / 2
+        ) / 2

@@ -28,9 +28,9 @@ from statistics import mean
 import numpy as np
 from scipy import signal
 
-from code import heartbeat_calculating
-from code import online_filter
-from code import online_qrs_detection
+from semg_online_ecg_removal import heartbeat_calculating
+from semg_online_ecg_removal import online_filter
+from semg_online_ecg_removal import online_qrs_detection
 
 
 class BetterEcgDetector:

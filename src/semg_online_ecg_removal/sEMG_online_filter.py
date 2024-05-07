@@ -24,11 +24,11 @@ SOFTWARE.
 
 from progress.bar import Bar
 
-from code.find_better_ecg import BetterEcgDetector
-from code.heartbeat_calculating import HeartRateCalculator
-from code.online_envelope import EnvelopeCalculator
-from code.online_qrs_detection import QrsDetector
-from code.online_semg_ecg_removal_multi_channel import SwtEmgDenoise
+from semg_online_ecg_removal.find_better_ecg import BetterEcgDetector
+from semg_online_ecg_removal.heartbeat_calculating import HeartRateCalculator
+from semg_online_ecg_removal.online_envelope import EnvelopeCalculator
+from semg_online_ecg_removal.online_qrs_detection import QrsDetector
+from semg_online_ecg_removal.online_semg_ecg_removal_multi_channel import SwtEmgDenoise
 
 
 class SEMGOnlineFilter:
