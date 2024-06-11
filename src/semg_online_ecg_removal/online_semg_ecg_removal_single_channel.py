@@ -29,7 +29,7 @@ Respiratory Electromyograms. IEEE Access, 8, 30905-30917.
 from collections import deque
 from statistics import median
 
-import online_three_layer_filter_bank
+import online_filter_bank
 
 
 class SwtEmgDenoise:
@@ -79,15 +79,21 @@ class SwtEmgDenoise:
 
         # Create and apply adaptive thresholds for every frequency band.
         empty_coeff = 0
-        swt_coefficients_emg = [(empty_coeff, empty_coeff) for _ in range(self.num_level)]
+        swt_coefficients_emg = [
+            (empty_coeff, empty_coeff) for _ in range(self.num_level)
+        ]
 
         if idx_new_peak == 0:
             self.idx_last_peak = 0
             idx_new_peak = -heartrate
 
         # For each detail coefficient calculate and apply a threshold, which gates the qrs complexes
-        for idx, coeff, ecg_thr, emg_thr in \
-                zip(range(self.num_level), swt_coefficients, self.qrs_thresholds, self.emg_thresholds):
+        for idx, coeff, ecg_thr, emg_thr in zip(
+            range(self.num_level),
+            swt_coefficients,
+            self.qrs_thresholds,
+            self.emg_thresholds,
+        ):
             # Create gates around detected R peaks. The width of each gate decreases with higher frequency bands. The
             # assumption is, that the QRS-complex is wide in low frequency bands and sharpens in higher bands.
             # Note that the swt bands are ordered from low to high frequencies.
@@ -95,7 +101,10 @@ class SwtEmgDenoise:
             level = self.num_level - idx
             win_gate = int(level * 0.2 * self.fs)
 
-            if idx_new_peak + win_gate / 2 >= 0 or self.idx_last_peak - win_gate / 2 + 1 <= 0:
+            if (
+                idx_new_peak + win_gate / 2 >= 0
+                or self.idx_last_peak - win_gate / 2 + 1 <= 0
+            ):
                 gate = True  # returns true if value in gate
             else:
                 gate = False
@@ -124,10 +133,14 @@ class SwtEmgDenoise:
 
             # Subsequently set smaller threshold in segmented qrs-complex areas.
             if gate:
-                wt_thresh = ecg_thr * median_detail_coeff  # set gates to lower threshold
+                wt_thresh = (
+                    ecg_thr * median_detail_coeff
+                )  # set gates to lower threshold
             else:
                 wt_thresh = emg_thr * median_detail_coeff
-            below = abs(detail_coeff) < wt_thresh  # returns a boolean array with True under threshold (no peak)
+            below = (
+                abs(detail_coeff) < wt_thresh
+            )  # returns a boolean array with True under threshold (no peak)
 
             # high frequencies
             # below threshold -> EMG
@@ -137,9 +150,16 @@ class SwtEmgDenoise:
             if level == 3:
                 swt_coefficients_emg[idx] = (0, detail_coeff)  # lowpass set to 0
             else:
-                swt_coefficients_emg[idx] = (coeff[0], detail_coeff)  # lowpass stays the same
+                swt_coefficients_emg[idx] = (
+                    coeff[0],
+                    detail_coeff,
+                )  # lowpass stays the same
 
         emg_denoised = self.filter_bank.iswt(
-            0, swt_coefficients_emg[0][1], swt_coefficients_emg[1][1], swt_coefficients_emg[2][1])
+            0,
+            swt_coefficients_emg[0][1],
+            swt_coefficients_emg[1][1],
+            swt_coefficients_emg[2][1],
+        )
 
         return emg_denoised
